@@ -58,7 +58,7 @@ class Dog extends App {
             margin: 0;
             padding: 0;
             font-family: "Noto Sans KR", sans-serif;
-            font-size: 0.1rem;
+            font-size: 1rem;
             overflow-x: hidden;
             background-color: transparent;
             width: 100%;

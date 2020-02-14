@@ -24,7 +24,7 @@ export default function Home() {
         console.log(res.data);
         setReportId(res.data.report_id);
         setPhase(2);
-        checkIsDataSet();
+        checkIsDataSet(res.data.report_id);
       })
       .catch(err => {
         console.log(err);
@@ -32,17 +32,18 @@ export default function Home() {
       });
   };
 
-  const checkIsDataSet = () => {
+  const checkIsDataSet = report_id => {
     const axios = require("axios");
     const FormData = require("form-data");
     const form_data = new FormData();
-    form_data.append("report_id", reportId);
+    form_data.append("report_id", report_id);
     const url = process.env.API_HOST + "/check";
     axios
       .post(url, form_data)
       .then(res => {
-        console.log(res.data);
-        if (res.data.is_data_set === false) setTimeout(checkIsDataSet(), 500);
+        console.log(res.data.is_data_set);
+        if (res.data.is_data_set === false)
+          setTimeout(checkIsDataSet(report_id), 500);
         else setIsDataSet(true);
       })
       .catch(err => {

@@ -1,86 +1,63 @@
 import React, { useState } from "react";
-import Head from "next/head";
 import styled from "styled-components";
-import Space from "@src/components/atoms/space";
-import LogoIcon from "@src/components/atoms/icon/logo";
-import { Upload, message, Button, Typography } from "antd";
-import Colors from "@src/components/atoms/colors";
-import { useAxiosMutation } from "@src/lib/services/Api";
+import { message } from "antd";
 
-const { Title } = Typography;
-
-const props = {
-  name: "file",
-  action: "http://211.218.53.149:5000/image/",
-  onChange(info) {
-    if (info.file.status !== "uploading") {
-      console.log(info.file, info.fileList);
-    }
-    if (info.file.status === "done") {
-      message.success("파일이 성공적으로 업로드되었습니다.");
-    } else if (info.file.status === "error") {
-      message.error("파일 업로드에 실패하였습니다.");
-    }
-  }
-};
+import Start from "@src/components/templates/Start";
+import Load from "@src/components/templates/Load";
 
 export default function Home() {
-  const [imageFile, setImageFile] = useState(null);
-  const [handleImageSubmit, loading, error] = useAxiosMutation(
-    "POST",
-    "/test",
-    {
-      variables: {
-        id: "123",
-        image: imageFile
-      }
-    }
-  );
+  const [phase, setPhase] = useState<number>(1);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imageFileSrc, setImageFileSrc] = useState(null);
+  const [reportId, setReportId] = useState(null);
+  const [isDataSet, setIsDataSet] = useState(false);
 
-  const handleImageUpload = e => {
-    const file = e.target.files[0];
-    setImageFile(file);
-    console.log(file);
-    () => handleImageSubmit;
-  };
-
-  const handleUpload = e => {
-    const file = e.target.files[0];
-    console.log(file);
-    setImageFile(file);
+  const handleSubmit = () => {
     const axios = require("axios");
     const FormData = require("form-data");
-
     const form_data = new FormData();
-    form_data.append("id", "123");
     form_data.append("image", imageFile);
-    console.log(form_data);
-    let url = "http://211.218.53.149:5000/test";
+    const url = process.env.API_HOST + "/test";
     axios
       .post(url, form_data)
       .then(res => {
         console.log(res.data);
+        setReportId(res.data.report_id);
+        setPhase(2);
+        checkIsDataSet();
       })
-      .catch(err => console.log(err));
+      .catch(err => {
+        console.log(err);
+        message.error("파일 업로드 실패");
+      });
+  };
+
+  const checkIsDataSet = () => {
+    const axios = require("axios");
+    const FormData = require("form-data");
+    const form_data = new FormData();
+    form_data.append("report_id", reportId);
+    const url = process.env.API_HOST + "/check";
+    axios
+      .post(url, form_data)
+      .then(res => {
+        console.log(res.data);
+        if (res.data.is_data_set === false) setTimeout(checkIsDataSet(), 500);
+        else setIsDataSet(true);
+      })
+      .catch(err => {
+        console.log(err);
+      });
   };
 
   return (
     <Wrapper>
-      <Space level={20} />
-      <LogoIcon
-        style={{ width: "20rem", height: "20rem" }}
-        fill={Colors.Black}
-      />
-      <Title>멍탐정</Title>
-      <Space level={10} />
-
-      <ImageInput
-        id="imageFile"
-        name="image"
-        type="file"
-        onChange={handleUpload}
-      ></ImageInput>
-      <Space level={30} />
+      {phase === 1 && (
+        <Start
+          {...{ imageFile, setImageFile, setImageFileSrc, handleSubmit }}
+        />
+      )}
+      {phase === 2 && <Load {...{ imageFileSrc, reportId, isDataSet }} />}
     </Wrapper>
   );
 }
@@ -91,14 +68,4 @@ const Wrapper = styled.div`
   flex-direction: column;
   align-items: center;
   overflow: hidden;
-`;
-
-const ImageInput = styled.input``;
-
-const ImgUpload = styled(Upload)`
-  width: 30rem;
-  overflow: hidden;
-`;
-const StartButton = styled(Button)`
-  width: 30rem;
 `;

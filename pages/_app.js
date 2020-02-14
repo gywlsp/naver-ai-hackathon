@@ -86,7 +86,7 @@ class Dog extends App {
           }
         `}</style>
         <Head>
-          <title>멍멍이</title>
+          <title>멍탐정</title>
         </Head>
         <Wrapper>
           <Component {...pageProps} />

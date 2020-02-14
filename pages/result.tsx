@@ -1,33 +1,56 @@
 import React from "react";
-import Head from "next/head";
 import styled from "styled-components";
-import Space from "@src/components/atoms/space";
-import LogoIcon from "@src/components/atoms/icon/logo";
 import { Icon, Button, Typography } from "antd";
-import Colors from "@src/components/atoms/colors";
+import { useRouter } from "next/router";
 import Link from "next/link";
+
 import CloseButton from "@src/components/molecules/CloseButton";
 import ShareButton from "@src/components/molecules/ShareButton";
-
+import Space from "@src/components/atoms/space";
+import Colors from "@src/components/atoms/colors";
+import { useAxios } from "@src/lib/services/Api";
 const { Title } = Typography;
 
 export default function Analyze() {
-  return (
-    <Wrapper>
-      <AbsoluteArea>
-        <ButtonRow>
-          <CloseButton />
-          <ShareButton />
-        </ButtonRow>
-        <TitleRow>
-          <Species>골든리트리버</Species>
-          <Space level={1} direction="ROW" />
-          <Age level={3}>7개월</Age>
-        </TitleRow>
-      </AbsoluteArea>
-      <TitleImg src="https://i.pinimg.com/564x/08/af/50/08af50fe71fd804ccdfd2e1478e5a50e.jpg" />
-    </Wrapper>
-  );
+  const router = useRouter();
+  const { id } = router.query;
+  const { loading, error, data } = useAxios("GET", "/getreport", {
+    variables: {
+      report_id: id
+    }
+  });
+
+  if (loading) {
+    console.log("loading");
+    return <div>loading</div>;
+  }
+  if (error) {
+    console.log(error);
+    return <div>error</div>;
+  }
+  if (data) {
+    console.log(data);
+    const imageSrc =
+      "data:image/" + data.image_extension + ";base64," + data.image;
+    return (
+      <Wrapper>
+        <AbsoluteArea>
+          <ButtonRow>
+            <CloseButton />
+            <ShareButton />
+          </ButtonRow>
+          <TitleRow>
+            <Species>골든리트리버</Species>
+            <Space level={1} direction="ROW" />
+            <Age level={3}>7개월</Age>
+          </TitleRow>
+        </AbsoluteArea>
+        <TitleImg src={imageSrc} />
+      </Wrapper>
+    );
+  }
+
+  return <div>hi</div>;
 }
 
 const Wrapper = styled.div`
